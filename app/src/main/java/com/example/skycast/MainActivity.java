@@ -1,10 +1,13 @@
 package com.example.skycast;
 
+import androidx.annotation.LongDef;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -19,22 +22,29 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.skycast.CitySearch.OnFetchDataListener;
+import com.example.skycast.CitySearch.OnItemClickListener;
 import com.example.skycast.CitySearch.RequestManager;
 import com.example.skycast.Model.ApiResult;
+import com.example.skycast.Recyler_View.CityList;
+import com.example.skycast.Recyler_View.ProgrammingAdapter;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnItemClickListener {
 
     TextView city;
     FusedLocationProviderClient fusedLocationProviderClient;
 
     SearchView searchView;
+    RecyclerView recyclerView;
+    static String selectedCityName = "";
+    List<CityList> selectedCity = new ArrayList<>();
 
 
     private final static int REQUEST_CODE = 100;
@@ -44,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        recyclerView = findViewById(R.id.recycle);
 
 
         city = findViewById(R.id.City);
@@ -64,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
              @Override
              public boolean onClose() {
                  city.setVisibility(View.VISIBLE);
+                 recyclerView.setVisibility(View.GONE);
                  return false;
              }
          });
@@ -76,11 +89,20 @@ public class MainActivity extends AppCompatActivity {
 
                  requestManager.fetchCityNames(listener,query);
 
+                 if(query.equals("")) {
+                     recyclerView.setVisibility(View.GONE);
+                     selectedCity.clear();
+                 }
+
                  return false;
              }
 
              @Override
              public boolean onQueryTextChange(String newText) {
+
+                 requestManager.fetchCityNames(listener,newText);
+                 selectedCity.clear();
+
                  return false;
              }
          });
@@ -153,14 +175,27 @@ public class MainActivity extends AppCompatActivity {
         }
             else{
 
+
+
                 for(ApiResult str : results){
 
-                    Log.d("huehue", String.valueOf(str.address.name));
+                    if(str.type.equals("city") || str.type.equals("town") || str.type.equals("village")) {
+                        Log.d("huehue", str.address.name + " " + str.address.state + " " + str.address.country);
 
-                    if(str.type=="city")
-                        Log.d("huehue",str.address.name);
+                        CityList cs = new CityList();
+                        cs.cityName = str.address.name;
+                        cs.stateName = str.address.state;
+                        cs.countryName = str.address.country;
+
+                        selectedCity.add(cs);
+
+                    }
 
                 }
+
+                displayResult(selectedCity);
+
+                Log.d("huehue", "size  of selectcity list: " +  String.valueOf(selectedCity.size()));
 
             }
 
@@ -174,5 +209,27 @@ public class MainActivity extends AppCompatActivity {
 
         };
 
+    public void displayResult(List<CityList> data){
+        recyclerView.setVisibility(View.VISIBLE);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(new ProgrammingAdapter(data,this::OnItemClick));
+    }
+
+    public static void setSelectedCityFromRecycleView(String city_Name){
+//        city.setText(city_Name);
+        selectedCityName = city_Name;
+    }
+
+
+    @Override
+    public void OnItemClick(String name) {
+
+        city.setText(name);
+        recyclerView.setVisibility(View.GONE);
+        searchView.clearFocus();
+        searchView.setQuery("", false);
+        searchView.setIconified(true);
+        selectedCity.clear();
 
     }
+}
