@@ -1,0 +1,32 @@
+<!-- cloud_shape.xml -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Cloud body -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF" />
+            <size
+                android:width="100dp"
+                android:height="60dp" />
+        </shape>
+    </item>
+
+    <!-- Left cloud puff -->
+    <item android:right="20dp">
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF" />
+            <size
+                android:width="40dp"
+                android:height="40dp" />
+        </shape>
+    </item>
+
+    <!-- Right cloud puff -->
+    <item android:left="20dp">
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF" />
+            <size
+                android:width="40dp"
+                android:height="40dp" />
+        </shape>
+    </item>
+</layer-list>
