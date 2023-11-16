@@ -1,24 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#89CFF0"
-    tools:context=".Splash_Screen">
+    tools:context=".Splash_Screen"
+    tools:ignore="ExtraText">
 
+    <!-- Background Image (Sun or Weather Symbol) -->
     <ImageView
+        android:id="@+id/sunImageView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/splash"
+        tools:ignore="MissingConstraints"
+        app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintVertical_bias="0.129" />
+
+    <!-- Clouds Animation -->
+    <!-- Update the cloud image reference in the splash screen layout -->
+    <ImageView
+        android:id="@+id/cloudsImageView"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/cloud_vector"
+    app:layout_constraintBottom_toTopOf="@+id/sunImageView"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintVertical_bias="0.5"
+    tools:ignore="ContentDescription"
+    android:layout_marginTop="16dp"/>
+
+
+    <!-- Weather App Name or Logo -->
+    <TextView
+        android:id="@+id/appNameTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SkyCast"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.778"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.129">
-
-    </ImageView>
-
+        app:layout_constraintTop_toBottomOf="@+id/sunImageView"
+        app:layout_constraintVertical_bias="0.1"
+        tools:ignore="HardcodedText"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

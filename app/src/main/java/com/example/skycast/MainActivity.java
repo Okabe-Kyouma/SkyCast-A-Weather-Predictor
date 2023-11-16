@@ -15,21 +15,32 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.airbnb.lottie.Lottie;
+import com.airbnb.lottie.LottieAnimationView;
 import com.example.skycast.CitySearch.OnFetchDataListener;
 import com.example.skycast.CitySearch.OnItemClickListener;
 import com.example.skycast.CitySearch.RequestManager;
 import com.example.skycast.Model.ApiResult;
+import com.example.skycast.Model.WeatherModel.ApiResultCurrent;
 import com.example.skycast.Recyler_View.CityList;
 import com.example.skycast.Recyler_View.ProgrammingAdapter;
+import com.example.skycast.WeatherCurrent.OnFetchCurrentWeatherListener;
+import com.example.skycast.WeatherCurrent.RequestManagerWeathercurrent;
+import com.github.matteobattilana.weather.PrecipType;
+import com.github.matteobattilana.weather.WeatherView;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,8 +49,9 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements OnItemClickListener {
 
-    TextView city;
+    TextView city,temp;
     FusedLocationProviderClient fusedLocationProviderClient;
+    ImageView img_weather;
 
     SearchView searchView;
     RecyclerView recyclerView;
@@ -57,10 +69,23 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
         recyclerView = findViewById(R.id.recycle);
 
+        LottieAnimationView anim = (LottieAnimationView) findViewById(R.id.sun);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                anim.playAnimation();
+            }
+        },3000);
+
+        WeatherView weatherView = findViewById(R.id.weather_view);
+        weatherView.setWeatherData(PrecipType.SNOW);
+
 
         city = findViewById(R.id.City);
         searchView  = findViewById(R.id.search);
-
+          temp = findViewById(R.id.temp);
+          img_weather = findViewById(R.id.img_weather);
          fusedLocationProviderClient  = LocationServices.getFusedLocationProviderClient(this);
 
          getLastLocation();
@@ -87,6 +112,11 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
              @Override
              public boolean onQueryTextSubmit(String query) {
 
+                 if(query.equals("")) {
+                     recyclerView.setVisibility(View.GONE);
+                     selectedCity.clear();
+                 }
+
                  requestManager.fetchCityNames(listener,query);
 
                  if(query.equals("")) {
@@ -100,6 +130,12 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
              @Override
              public boolean onQueryTextChange(String newText) {
 
+                 if(newText.equals("")) {
+                     recyclerView.setVisibility(View.GONE);
+                     selectedCity.clear();
+                 }
+
+
                  requestManager.fetchCityNames(listener,newText);
                  selectedCity.clear();
 
@@ -108,41 +144,55 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
          });
 
 
+         if(recyclerView.getVisibility()==View.INVISIBLE || recyclerView.getVisibility()==View.GONE) {
+
+             Log.d("huehue","working or not? ");
+             getCurrentWeatherDetails();
+
+         }
 
 
     }
 
     private void getLastLocation(){
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
 
-            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-                @SuppressLint("SetTextI18n")
-                @Override
-                public void onSuccess(Location location) {
-                    Geocoder geocoder = null;
-                    if(location!=null)
-                         geocoder = new Geocoder(MainActivity.this, Locale.getDefault());
+        try {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
-                    List<Address> addressList = null;
-                    try {
-                        addressList = geocoder.getFromLocation(location.getLatitude(),location.getLongitude(),1);
+                fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void onSuccess(Location location) {
+                        Geocoder geocoder = null;
+                        if (location != null)
+                            geocoder = new Geocoder(MainActivity.this, Locale.getDefault());
+
+                        List<Address> addressList = null;
+                        try {
+                            addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
 //                        lat.setText("Latitude: " + addressList.get(0).getLatitude());
 //                        longitude.setText("Longitude: " + addressList.get(0).getLongitude());
 //                        add.setText("Address: " + addressList.get(0).getAddressLine(0));
-                        city.setText(addressList.get(0).getLocality());
+                            city.setText(addressList.get(0).getLocality());
+                            getCurrentWeatherDetails();
 //                        country.setText("Country: " + addressList.get(0).getCountryName());
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
                     }
+                });
+            } else {
 
-                }
-            });
-        }
-        else{
-
-            city.setText("New-Delhi");
+                city.setText("New-Delhi");
+                getCurrentWeatherDetails();
 //            askPermission();
 
+            }
+
+        }
+        catch (Exception e){
+            e.printStackTrace();
         }
     }
 
@@ -180,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
                 for(ApiResult str : results){
 
                     if(str.type.equals("city") || str.type.equals("town") || str.type.equals("village")) {
-                        Log.d("huehue", str.address.name + " " + str.address.state + " " + str.address.country);
+//                        Log.d("huehue", str.address.name + " " + str.address.state + " " + str.address.country);
 
                         CityList cs = new CityList();
                         cs.cityName = str.address.name;
@@ -195,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
                 displayResult(selectedCity);
 
-                Log.d("huehue", "size  of selectcity list: " +  String.valueOf(selectedCity.size()));
+//                Log.d("huehue", "size  of selectcity list: " +  String.valueOf(selectedCity.size()));
 
             }
 
@@ -231,5 +281,73 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         searchView.setIconified(true);
         selectedCity.clear();
 
+        getCurrentWeatherDetails();
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    RequestManagerWeathercurrent requestManagerWeathercurrent = new RequestManagerWeathercurrent(this);
+
+
+    private void getCurrentWeatherDetails(){
+        Log.d("huehue","Calling GetcurrentweatherDetails with cityName: " + city.getText().toString());
+        requestManagerWeathercurrent.fetchCurrentWeatherDetails(currentWeatherListener,city.getText().toString());
+    }
+
+
+    private final OnFetchCurrentWeatherListener currentWeatherListener = new OnFetchCurrentWeatherListener() {
+        @Override
+        public void onFetchData(ApiResultCurrent resultCurrentList, String message) {
+
+            temp.setText("Temperature: " + resultCurrentList.getCurrent().getTemp_c());
+
+            Log.d("huehue","the current weather fetch is working fine: " + resultCurrentList.getCurrent().getTemp_c());
+
+            String image_weather = resultCurrentList.getCurrent().getCondition().getIcon();
+
+            Picasso.get().load("http:" + image_weather).into(img_weather);
+
+        }
+
+        @Override
+        public void onError(String message) {
+
+        }
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

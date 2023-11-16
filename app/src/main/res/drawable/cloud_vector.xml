@@ -1,0 +1,12 @@
+<!-- res/drawable/cloud_vector.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0">
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M13,2C7.48,2 3,6.48 3,12s4.48,10 10,10 10-4.48 10-10S18.52,2 13,2zM15,17h-4v-2h4v2zm2-3H7v-2h10v2zm3-3H4v-2h16v2z"/>
+
+</vector>

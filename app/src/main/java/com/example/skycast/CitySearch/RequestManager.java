@@ -44,10 +44,10 @@ public class RequestManager {
                     Log.d("huehue", String.valueOf(response.code()));
 
                     if(!response.isSuccessful()){
-                        Toast.makeText(context, "Error Occurred!-NOt successfull", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(context, "Error Occurred!-NOt successfull", Toast.LENGTH_SHORT).show();
                     }
                     else{
-                        Toast.makeText(context, "Response SuccessFull", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(context, "Response SuccessFull", Toast.LENGTH_SHORT).show();
                         listener.OnFetchData(response.body(),response.message());
 
                     }
@@ -57,7 +57,7 @@ public class RequestManager {
                 @Override
                 public void onFailure(Call<List<ApiResult>> call, Throwable t) {
 
-                    Log.d("huehue","tomtal failure " + t.toString());
+//                    Log.d("huehue","tomtal failure " + t.toString());
 
                     listener.onError("Error Occurred!-FAiled");
 

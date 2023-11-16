@@ -26,14 +26,27 @@ public class Splash_Screen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
 
-                Log.d("huehue","handler");
+//        try {
+//            Thread.sleep(2000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
+        Log.d("huehue","handler");
 
                 if(ContextCompat.checkSelfPermission(Splash_Screen.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
                     Log.d("huehue","permission is granted starting main activity");
 
-                    Intent intent = new Intent(Splash_Screen.this, MainActivity.class);
-                    startActivity(intent);
+                     new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            Intent intent = new Intent(Splash_Screen.this, MainActivity.class);
+                            startActivity(intent);
+
+                        }
+                    },2000);
 
 
                 }
