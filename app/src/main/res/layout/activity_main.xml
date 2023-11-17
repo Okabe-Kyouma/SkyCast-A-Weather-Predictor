@@ -11,20 +11,9 @@
     <include
         android:id="@+id/include"
         layout="@layout/toolbar"
-        android:elevation="1000dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycle"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:elevation="1000dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/include"/>
 
     <include
         layout="@layout/rainandsnow"
@@ -32,49 +21,6 @@
          app:layout_constraintTop_toBottomOf="@id/recycle">
 
     </include>
-
-
-<!--    <com.github.matteobattilana.weather.WeatherView-->
-<!--        android:id="@+id/weather_view"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="500dp"-->
-<!--        android:background="@color/black"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/include"-->
-<!--        app:layout_constraintTop_toTopOf="@id/recycle">-->
-
-<!--        <androidx.constraintlayout.widget.ConstraintLayout-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="match_parent">-->
-
-<!--            <TextView-->
-<!--                android:id="@+id/temp"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:gravity="center"-->
-<!--                android:text="hello world"-->
-<!--                android:textColor="@color/white"-->
-<!--                app:layout_constraintBottom_toBottomOf="parent"-->
-<!--                app:layout_constraintEnd_toEndOf="parent"-->
-<!--                app:layout_constraintHorizontal_bias="0.52"-->
-<!--                app:layout_constraintStart_toStartOf="parent"-->
-<!--                app:layout_constraintTop_toTopOf="parent"-->
-<!--                app:layout_constraintVertical_bias="0.688" />-->
-
-<!--            <ImageView-->
-<!--                android:id="@+id/img_weather"-->
-<!--                android:layout_width="55dp"-->
-<!--                android:layout_height="64dp"-->
-<!--                android:src="@drawable/placeholderweather"-->
-<!--                app:layout_constraintBottom_toTopOf="@+id/temp"-->
-<!--                app:layout_constraintEnd_toEndOf="parent"-->
-<!--                app:layout_constraintHorizontal_bias="0.539"-->
-<!--                app:layout_constraintStart_toStartOf="parent"-->
-<!--                app:layout_constraintTop_toTopOf="parent"-->
-<!--                app:layout_constraintVertical_bias="0.967" />-->
-
-<!--        </androidx.constraintlayout.widget.ConstraintLayout>-->
-
-<!--    </com.github.matteobattilana.weather.WeatherView>-->
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

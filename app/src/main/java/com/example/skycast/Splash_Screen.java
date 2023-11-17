@@ -7,12 +7,16 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Arrays;
@@ -31,6 +35,37 @@ public class Splash_Screen extends AppCompatActivity {
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
+
+        // Inside your Splash_Screen activity or fragment
+        TextView appNameTextView = findViewById(R.id.appNameTextView);
+
+// Create an ObjectAnimator for alpha property
+        ObjectAnimator fadeInAnimator = ObjectAnimator.ofFloat(appNameTextView, "alpha", 0f, 1f);
+        fadeInAnimator.setDuration(1000); // Set the duration in milliseconds
+
+// Start the animation
+        fadeInAnimator.start();
+
+        // Inside your Splash_Screen activity or fragment
+        ImageView sunImageView = findViewById(R.id.sunImageView);
+
+// Create an ObjectAnimator for scaling (X and Y) and alpha properties
+        ObjectAnimator scaleXAnimator = ObjectAnimator.ofFloat(sunImageView, "scaleX", 0.5f, 1f);
+        ObjectAnimator scaleYAnimator = ObjectAnimator.ofFloat(sunImageView, "scaleY", 0.5f, 1f);
+        ObjectAnimator fadeInAnimator2 = ObjectAnimator.ofFloat(sunImageView, "alpha", 0f, 1f);
+
+// Set the duration for each animator
+        scaleXAnimator.setDuration(1000);
+        scaleYAnimator.setDuration(1000);
+        fadeInAnimator2.setDuration(1000);
+
+// Start the animations together
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(scaleXAnimator, scaleYAnimator, fadeInAnimator2);
+        animatorSet.start();
+
+
+
 
         Log.d("huehue","handler");
 

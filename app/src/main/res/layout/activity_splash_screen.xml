@@ -9,36 +9,27 @@
     tools:context=".Splash_Screen"
     tools:ignore="ExtraText">
 
-    <!-- Background Image (Sun or Weather Symbol) -->
+    <!-- Background Image (Sun or Weather Symbol) with Scale Animation -->
     <ImageView
         android:id="@+id/sunImageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:src="@drawable/splash"
-        tools:ignore="MissingConstraints"
+        android:scaleType="centerCrop"
         app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintVertical_bias="0.129" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.2"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="32dp"
+        android:animateLayoutChanges="true"
+        android:alpha="0"
+        android:rotation="0"
+        android:rotationY="0"
+        android:rotationX="0"/>
 
-    <!-- Clouds Animation -->
-    <!-- Update the cloud image reference in the splash screen layout -->
-    <ImageView
-        android:id="@+id/cloudsImageView"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:src="@drawable/cloud_vector"
-    app:layout_constraintBottom_toTopOf="@+id/sunImageView"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintVertical_bias="0.5"
-    tools:ignore="ContentDescription"
-    android:layout_marginTop="16dp"/>
-
-
-    <!-- Weather App Name or Logo -->
+    <!-- Weather App Name or Logo with Fade-In Animation -->
     <TextView
         android:id="@+id/appNameTextView"
         android:layout_width="wrap_content"
@@ -51,6 +42,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/sunImageView"
         app:layout_constraintVertical_bias="0.1"
-        tools:ignore="HardcodedText"/>
-
+        tools:ignore="HardcodedText"
+        android:alpha="0"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
