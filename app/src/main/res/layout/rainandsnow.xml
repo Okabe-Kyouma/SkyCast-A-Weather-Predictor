@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
 
     <com.github.matteobattilana.weather.WeatherView
         android:id="@+id/weather_view"
@@ -23,7 +25,7 @@
             android:layout_margin="10dp"
             android:background="@drawable/searchview_background"
             android:maxWidth="500dp"
-            app:queryHint="Enter City Name"></androidx.appcompat.widget.SearchView>
+            app:queryHint="Enter City Name" />
 
 
         <androidx.recyclerview.widget.RecyclerView
@@ -32,40 +34,49 @@
             android:layout_height="678dp"
             android:layout_marginTop="59dp"
             android:background="@android:color/transparent"
+            android:elevation="1000dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@id/search"
             app:layout_constraintTop_toBottomOf="@+id/search" />
 
-        <TextView
-            android:id="@+id/City"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="53dp"
-            android:layout_marginEnd="50dp"
-            android:layout_marginBottom="10dp"
-            android:textAllCaps="true"
-            android:shadowColor="@color/white"
-            android:outlineAmbientShadowColor="@color/purple_200"
-            android:fontFamily="@font/regular"
-            android:text="Please Wait"
-            android:textColor="@color/black"
-            android:textFontWeight="800"
-            android:textSize="22sp"
-            android:textStyle="bold">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="674dp"
+            android:layout_marginTop="59dp">
 
 
+            <TextView
+                android:id="@+id/City"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:alpha="0.0"
+                android:animation="@anim/fadein"
+                android:fontFamily="@font/regular"
+                android:outlineAmbientShadowColor="@color/purple_200"
+                android:shadowColor="@color/white"
+                android:text="Please Wait"
+                android:textAllCaps="true"
+                android:textColor="@color/black"
+                android:textFontWeight="800"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:visibility="invisible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        </TextView>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <TextView
             android:id="@+id/temp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="80dp"
+            android:layout_marginTop="98dp"
             android:fontFamily="@font/regular"
             android:gravity="center"
             android:text="Please Wait"
@@ -77,18 +88,28 @@
             android:layout_width="144dp"
             android:layout_height="169dp"
             android:layout_gravity="center"
-            android:layout_marginBottom="10dp"
             android:src="@drawable/placeholderweather" />
 
-        <!--        <com.airbnb.lottie.LottieAnimationView-->
-        <!--            android:id="@+id/sun"-->
-        <!--            android:layout_width="100dp"-->
-        <!--            android:layout_height="100dp"-->
-        <!--            android:layout_gravity="center"-->
-        <!--            android:layout_marginLeft="100dp"-->
-        <!--            android:layout_marginTop="-200dp"-->
-        <!--            app:lottie_autoPlay="true"-->
-        <!--            app:lottie_fileName="sun.json" />-->
+        <TextView
+            android:id="@+id/get_more_details"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="265dp"
+            android:background="@drawable/getmoredetailsbox"
+            android:fontFamily="@font/regular"
+            android:padding="10dp"
+            android:text="Get More Details->" />
+
+        <TextView
+            android:id="@+id/currentDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="200dp"
+            android:fontFamily="@font/regular"
+            android:text="Date"
+            android:textSize="20dp" />
 
 
     </com.github.matteobattilana.weather.WeatherView>

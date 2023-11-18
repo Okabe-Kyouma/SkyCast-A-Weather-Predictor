@@ -11,8 +11,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
@@ -36,6 +40,7 @@ import com.example.skycast.CitySearch.OnFetchDataListener;
 import com.example.skycast.CitySearch.OnItemClickListener;
 import com.example.skycast.CitySearch.RequestManager;
 import com.example.skycast.Model.ApiResult;
+import com.example.skycast.Model.Data;
 import com.example.skycast.Model.WeatherModel.ApiResultCurrent;
 import com.example.skycast.Recyler_View.CityList;
 import com.example.skycast.Recyler_View.ProgrammingAdapter;
@@ -49,14 +54,21 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.TimeZone;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements OnItemClickListener {
 
-    TextView city,temp;
+    TextView city,temp,getMoreDetails;
     FusedLocationProviderClient fusedLocationProviderClient;
     ImageView img_weather;
     WeatherView weatherView;
@@ -65,6 +77,10 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     RecyclerView recyclerView;
     static String selectedCityName = "";
     List<CityList> selectedCity = new ArrayList<>();
+    TextView currentDate;
+    private static final long UPDATE_INTERVAL = 1000;
+    String currentHourString;
+    String currentTimeZone = " Asia/Kolkata";
 
 
     private final static int REQUEST_CODE = 100;
@@ -79,7 +95,38 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
         setContentView(R.layout.activity_main);
 
+        setDate(currentTimeZone);
+
         recyclerView = findViewById(R.id.recycle);
+
+        getMoreDetails = findViewById(R.id.get_more_details);
+
+        getMoreDetails.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent intent = new Intent(MainActivity.this,MoreDetails.class);
+                startActivity(intent);
+
+            }
+        });
+
+
+
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setDate(currentTimeZone);
+                    }
+                });
+            }
+        }, 0, UPDATE_INTERVAL);
+
+
 
 //        LottieAnimationView anim = (LottieAnimationView) findViewById(R.id.sun);
 //
@@ -200,6 +247,24 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 //                        longitude.setText("Longitude: " + addressList.get(0).getLongitude());
 //                        add.setText("Address: " + addressList.get(0).getAddressLine(0));
                             city.setText(addressList.get(0).getLocality());
+
+                            currentTimeZone = "Asia/Kolkata";
+
+                            city.setAlpha(0.0f);
+
+                            // Create a ViewPropertyAnimator for the fade-in animation
+                            city.animate()
+                                    .alpha(1.0f)
+                                    .setDuration(1000) // Set the duration in milliseconds
+                                    .setListener(new AnimatorListenerAdapter() {
+                                        @Override
+                                        public void onAnimationStart(Animator animation) {
+                                            // Set visibility to visible when the animation starts
+                                            city.setVisibility(View.VISIBLE);
+                                        }
+                                    })
+                                    .start();
+
                             getCurrentWeatherDetails();
 //                        country.setText("Country: " + addressList.get(0).getCountryName());
                         } catch (IOException e) {
@@ -309,6 +374,23 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
         getCurrentWeatherDetails();
 
+        city.setAlpha(0.0f);
+
+        // Create a ViewPropertyAnimator for the fade-in animation
+        city.animate()
+                .alpha(1.0f)
+                .setDuration(3000) // Set the duration in milliseconds
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        // Set visibility to visible when the animation starts
+                        city.setVisibility(View.VISIBLE);
+                    }
+                })
+                .start();
+
+        city.setShadowLayer(5,0,0, Color.WHITE);
+
 
     }
 
@@ -342,6 +424,19 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
             Log.d("huehue","the current weather fetch is working fine: " + resultCurrentList.getCurrent().getTemp_c());
 
             Log.d("huehue","Weather text: " + resultCurrentList.getCurrent().getCondition().getText());
+
+            currentTimeZone = resultCurrentList.getLocation().getTz_id();
+
+            setDate(currentTimeZone);
+
+            if(Integer.parseInt(currentHourString)>18 || Integer.parseInt(currentHourString)<7){
+                weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this,R.drawable.gradient_list_night));
+
+                AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
+                animationDrawable.setEnterFadeDuration(2500);
+                animationDrawable.setExitFadeDuration(5000);
+                animationDrawable.start();
+            }
 
             if(Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Sunny")){
 
@@ -404,6 +499,26 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
             }
            else{
                 weatherView.setWeatherData(PrecipType.CLEAR);
+//                Log.d("huehue","this working and currenHourString: " + currentHourString);
+
+                if(Integer.parseInt(currentHourString)>18){
+                    weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this,R.drawable.gradient_list_night));
+
+                    AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
+                    animationDrawable.setEnterFadeDuration(2500);
+                    animationDrawable.setExitFadeDuration(5000);
+                    animationDrawable.start();
+                }
+                else {
+
+                    weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this, R.drawable.gradient_list));
+                    AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
+                    animationDrawable.setEnterFadeDuration(2500);
+                    animationDrawable.setExitFadeDuration(5000);
+                    animationDrawable.start();
+
+                }
+
             }
 
 
@@ -420,19 +535,33 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     };
 
 
+    private void setDate(String tz) {
+
+        currentDate = findViewById(R.id.currentDate);
+
+        TimeZone timeZone = TimeZone.getTimeZone(tz);
+
+        Calendar calendar = Calendar.getInstance(timeZone);
+
+        DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.FULL, Locale.getDefault());
+        dateFormat.setTimeZone(timeZone);
+
+        String currentDateString = dateFormat.format(calendar.getTime());
+
+        Date currentTime = calendar.getTime();
 
 
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+        timeFormat.setTimeZone(timeZone);
+        String currentTimeString = timeFormat.format(currentTime);
+
+        SimpleDateFormat hourFormat = new SimpleDateFormat("HH", Locale.getDefault());
+        hourFormat.setTimeZone(timeZone);
+        currentHourString = hourFormat.format(currentTime);
 
 
-
-
-
-
-
-
-
-
-
+        currentDate.setText(currentDateString + " " + currentTimeString);
+    }
 
 
 
