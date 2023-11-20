@@ -68,38 +68,50 @@ import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements OnItemClickListener {
 
-    TextView city,temp,getMoreDetails;
-    FusedLocationProviderClient fusedLocationProviderClient;
-    ImageView img_weather;
-    WeatherView weatherView;
 
+    private static final long UPDATE_INTERVAL = 1000;
+    private final static int REQUEST_CODE = 100;
+
+
+    TextView city,temp,getMoreDetails,condition;
+    ImageView img_weather,location_icon;
+    WeatherView weatherView;
     SearchView searchView;
     RecyclerView recyclerView;
-    static String selectedCityName = "";
-    List<CityList> selectedCity = new ArrayList<>();
     TextView currentDate;
-    private static final long UPDATE_INTERVAL = 1000;
     String currentHourString;
     String currentTimeZone = " Asia/Kolkata";
+    FusedLocationProviderClient fusedLocationProviderClient;
+    List<CityList> selectedCity = new ArrayList<>();
+    static String selectedCityName = "";
+    static Drawable currentBackgroundDrawable;
+    static String CurrentHourOfCurrentCity = "";
 
-
-    private final static int REQUEST_CODE = 100;
 
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
         setContentView(R.layout.activity_main);
 
-        setDate(currentTimeZone);
-
         recyclerView = findViewById(R.id.recycle);
-
         getMoreDetails = findViewById(R.id.get_more_details);
+        weatherView = findViewById(R.id.weather_view);
+        city = findViewById(R.id.City);
+        searchView  = findViewById(R.id.search);
+        temp = findViewById(R.id.temp);
+        img_weather = findViewById(R.id.img_weather);
+        location_icon = findViewById(R.id.iconLocation);
+        condition = findViewById(R.id.condition);
+
+
+
+        fusedLocationProviderClient  = LocationServices.getFusedLocationProviderClient(this);
+        RequestManager requestManager = new RequestManager(this);
+        weatherView.setWeatherData(PrecipType.CLEAR);
+
 
         getMoreDetails.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -110,8 +122,6 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
             }
         });
-
-
 
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -128,23 +138,10 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
 
 
-//        LottieAnimationView anim = (LottieAnimationView) findViewById(R.id.sun);
-//
-//        new Handler().postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                anim.playAnimation();
-//            }
-//        },3000);
 
-
-       weatherView = findViewById(R.id.weather_view);
-        weatherView.setWeatherData(PrecipType.CLEAR);
-
+        currentBackgroundDrawable = weatherView.getBackground();
         AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
-
         LinearLayout linearLayoutToolBarId = findViewById(R.id.include);
-
         AnimationDrawable animationDrawable1 = (AnimationDrawable) linearLayoutToolBarId.getBackground();
 
         animationDrawable1.setEnterFadeDuration(2500);
@@ -155,17 +152,20 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         animationDrawable1.start();
 
 
-        city = findViewById(R.id.City);
-        searchView  = findViewById(R.id.search);
-          temp = findViewById(R.id.temp);
-          img_weather = findViewById(R.id.img_weather);
-         fusedLocationProviderClient  = LocationServices.getFusedLocationProviderClient(this);
 
-         getLastLocation();
+
+        setDate(currentTimeZone);
+        getLastLocation();
+
+
+
+
+
 
          searchView.setOnSearchClickListener(new View.OnClickListener() {
              @Override
              public void onClick(View v) {
+
                  city.setVisibility(View.INVISIBLE);
              }
          });
@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
              }
          });
 
-        RequestManager requestManager = new RequestManager(this);
+
 
          searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
              @Override
@@ -199,6 +199,8 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
                  return false;
              }
+
+
 
              @Override
              public boolean onQueryTextChange(String newText) {
@@ -243,24 +245,26 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
                         List<Address> addressList = null;
                         try {
                             addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-//                        lat.setText("Latitude: " + addressList.get(0).getLatitude());
-//                        longitude.setText("Longitude: " + addressList.get(0).getLongitude());
-//                        add.setText("Address: " + addressList.get(0).getAddressLine(0));
                             city.setText(addressList.get(0).getLocality());
+
+                            Log.d("huehue","getting latitude: " + addressList.get(0).getLatitude());
+                            Log.d("huehue","getting latitude: " + addressList.get(0).getLongitude());
+
+                            setSelectedCityFromRecycleView(city.getText().toString());
+                            city.setShadowLayer(5,0,0, Color.WHITE);
 
                             currentTimeZone = "Asia/Kolkata";
 
                             city.setAlpha(0.0f);
 
-                            // Create a ViewPropertyAnimator for the fade-in animation
                             city.animate()
                                     .alpha(1.0f)
-                                    .setDuration(1000) // Set the duration in milliseconds
+                                    .setDuration(1000)
                                     .setListener(new AnimatorListenerAdapter() {
                                         @Override
                                         public void onAnimationStart(Animator animation) {
-                                            // Set visibility to visible when the animation starts
                                             city.setVisibility(View.VISIBLE);
+
                                         }
                                     })
                                     .start();
@@ -276,6 +280,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
             } else {
 
                 city.setText("New-Delhi");
+                setSelectedCityFromRecycleView(city.getText().toString());
                 getCurrentWeatherDetails();
 //            askPermission();
 
@@ -321,7 +326,6 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
                 for(ApiResult str : results){
 
                     if(str.type.equals("city") || str.type.equals("town") || str.type.equals("village")) {
-//                        Log.d("huehue", str.address.name + " " + str.address.state + " " + str.address.country);
 
                         CityList cs = new CityList();
                         cs.cityName = str.address.name;
@@ -335,8 +339,6 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
                 }
 
                 displayResult(selectedCity);
-
-//                Log.d("huehue", "size  of selectcity list: " +  String.valueOf(selectedCity.size()));
 
             }
 
@@ -357,7 +359,6 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     }
 
     public static void setSelectedCityFromRecycleView(String city_Name){
-//        city.setText(city_Name);
         selectedCityName = city_Name;
     }
 
@@ -366,6 +367,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     public void OnItemClick(String name) {
 
         city.setText(name);
+        setSelectedCityFromRecycleView(city.getText().toString());
         recyclerView.setVisibility(View.GONE);
         searchView.clearFocus();
         searchView.setQuery("", false);
@@ -376,15 +378,14 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
         city.setAlpha(0.0f);
 
-        // Create a ViewPropertyAnimator for the fade-in animation
         city.animate()
                 .alpha(1.0f)
-                .setDuration(3000) // Set the duration in milliseconds
+                .setDuration(3000)
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationStart(Animator animation) {
-                        // Set visibility to visible when the animation starts
                         city.setVisibility(View.VISIBLE);
+
                     }
                 })
                 .start();
@@ -393,16 +394,6 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
 
     }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -416,110 +407,81 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
 
     private final OnFetchCurrentWeatherListener currentWeatherListener = new OnFetchCurrentWeatherListener() {
+        @SuppressLint("SetTextI18n")
         @Override
         public void onFetchData(ApiResultCurrent resultCurrentList, String message) {
 
-            temp.setText("Temperature: " + resultCurrentList.getCurrent().getTemp_c());
+            temp.setText(resultCurrentList.getCurrent().getTemp_c() + "\u00B0");
 
-            Log.d("huehue","the current weather fetch is working fine: " + resultCurrentList.getCurrent().getTemp_c());
+            Log.d("huehue","the current weather fetch is working fine: " + resultCurrentList.getCurrent().getTemp_c() + "\u00B0");
 
             Log.d("huehue","Weather text: " + resultCurrentList.getCurrent().getCondition().getText());
 
             currentTimeZone = resultCurrentList.getLocation().getTz_id();
 
+            condition.setText(resultCurrentList.getCurrent().getCondition().getText().toString());
+
             setDate(currentTimeZone);
-
-            if(Integer.parseInt(currentHourString)>18 || Integer.parseInt(currentHourString)<7){
-                weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this,R.drawable.gradient_list_night));
-
-                AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
-                animationDrawable.setEnterFadeDuration(2500);
-                animationDrawable.setExitFadeDuration(5000);
-                animationDrawable.start();
-            }
 
             if(Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Sunny")){
 
                 Log.d("huehue","inside sunny");
 
                 weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this,R.drawable.gradient_list));
-
-                AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
-                animationDrawable.setEnterFadeDuration(2500);
-                animationDrawable.setExitFadeDuration(5000);
-                animationDrawable.start();
                 weatherView.setWeatherData(PrecipType.CLEAR);
 
             }
             else if(Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Partly cloudy") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Cloudy")){
 
                 weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this,R.drawable.gradient_list_cloudy));
-
-                AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
-                animationDrawable.setEnterFadeDuration(2500);
-                animationDrawable.setExitFadeDuration(5000);
-                animationDrawable.start();
                 weatherView.setWeatherData(PrecipType.CLEAR);
 
             }
            else if(Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Mist") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Freezing fog") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy freezing drizzle possible") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Fog") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Overcast")){
 
                 weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this,R.drawable.gradient_list_mistandfog));
-
-                AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
-                animationDrawable.setEnterFadeDuration(2500);
-                animationDrawable.setExitFadeDuration(5000);
-                animationDrawable.start();
                 weatherView.setWeatherData(PrecipType.CLEAR);
 
             }
             else if(Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Heavy snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Blowing snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy heavy snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Moderate or heavy snow with thunder") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Light snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy moderate snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy heavy snow")){
 
                 weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this,R.drawable.gradient_list_mistandfog));
-
-                AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
-                animationDrawable.setEnterFadeDuration(2500);
-                animationDrawable.setExitFadeDuration(5000);
-                animationDrawable.start();
-
                 weatherView.setWeatherData(PrecipType.SNOW);
 
             }
            else if(Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy light drizzle") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Light drizzle") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Freezing drizzle") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Heavy freezing drizzle") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy light rain") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Light rain") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Moderate rain at times") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Moderate rain") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Moderate rain at times") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Heavy rain at times") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Heavy rain") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Light freezing rain") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Moderate or heavy freezing rain") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Light sleet") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Light rain shower") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Moderate or heavy rain shower") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Torrential rain shower") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Light sleet shower") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy light rain with thunder") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Moderate or heavy rain with thunder")){
 
                 weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this,R.drawable.gradient_list_cloudy));
-
-                AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
-                animationDrawable.setEnterFadeDuration(2500);
-                animationDrawable.setExitFadeDuration(5000);
-                animationDrawable.start();
-
                 weatherView.setWeatherData(PrecipType.RAIN);
 
             }
            else{
                 weatherView.setWeatherData(PrecipType.CLEAR);
-//                Log.d("huehue","this working and currenHourString: " + currentHourString);
-
                 if(Integer.parseInt(currentHourString)>18){
                     weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this,R.drawable.gradient_list_night));
-
-                    AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
-                    animationDrawable.setEnterFadeDuration(2500);
-                    animationDrawable.setExitFadeDuration(5000);
-                    animationDrawable.start();
                 }
                 else {
 
                     weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this, R.drawable.gradient_list));
-                    AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
-                    animationDrawable.setEnterFadeDuration(2500);
-                    animationDrawable.setExitFadeDuration(5000);
-                    animationDrawable.start();
-
                 }
 
             }
+
+
+
+
+            if(Integer.parseInt(currentHourString)>18 || Integer.parseInt(currentHourString)<7){
+                weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this,R.drawable.gradient_list_night));
+
+
+            }
+
+            currentBackgroundDrawable = weatherView.getBackground();
+            AnimationDrawable animationDrawable = (AnimationDrawable) weatherView.getBackground();
+            animationDrawable.setEnterFadeDuration(2500);
+            animationDrawable.setExitFadeDuration(5000);
+            animationDrawable.start();
+
 
 
             String image_weather = resultCurrentList.getCurrent().getCondition().getIcon();
@@ -558,6 +520,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         SimpleDateFormat hourFormat = new SimpleDateFormat("HH", Locale.getDefault());
         hourFormat.setTimeZone(timeZone);
         currentHourString = hourFormat.format(currentTime);
+
+        CurrentHourOfCurrentCity = currentHourString;
+
 
 
         currentDate.setText(currentDateString + " " + currentTimeString);

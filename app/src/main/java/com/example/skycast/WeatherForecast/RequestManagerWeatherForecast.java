@@ -33,7 +33,7 @@ public class RequestManagerWeatherForecast {
     public void fetchWeatherForecastDetails(OnFetchWeatherForecastListener listener, String getWeatherOfCity){
 
         CallWeatherForecast callWeatherForecast = retrofit.create(CallWeatherForecast.class);
-        Call<ApiResultForecast> call = callWeatherForecast.callApi("33b0c5aebdcb4a9497e124359232010",getWeatherOfCity,"yes","no");
+        Call<ApiResultForecast> call = callWeatherForecast.callApi("7913c73b31b24cdd86c190529232011",getWeatherOfCity,10,"yes","no");
 
 
         Log.d("huehue","inside fetchWeatherForeCastDetails: with city name: " + getWeatherOfCity +" " + "the call " + call.request());
@@ -86,6 +86,7 @@ interface CallWeatherForecast{
 
             @Query("key") String key,
             @Query("q") String q,
+            @Query("days") int days,
             @Query("aqi") String aqi,
             @Query("alerts") String alerts
 
