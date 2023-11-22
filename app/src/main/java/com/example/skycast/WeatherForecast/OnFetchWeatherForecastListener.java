@@ -6,6 +6,8 @@ public interface OnFetchWeatherForecastListener {
 
     void onFetchDate(ApiResultForecast apiResultForecast,String message);
 
+    void onCityNotFound(String message);
+
     void onError(String message);
 
 }

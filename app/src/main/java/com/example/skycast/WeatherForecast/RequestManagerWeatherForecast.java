@@ -45,10 +45,13 @@ public class RequestManagerWeatherForecast {
                 public void onResponse(Call<ApiResultForecast> call, Response<ApiResultForecast> response) {
 
                     if(!response.isSuccessful()){
-                        Toast.makeText(context, "Error Occurred!-NOt successfull", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "Server-Error Please Try after some time", Toast.LENGTH_SHORT).show();
+
+                        listener.onCityNotFound("re-routing// To Longitude and Latitude");
+
                     }
                     else{
-                        Toast.makeText(context, "Response is tomtally Successfull", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(context, "Response is tomtally Successfull", Toast.LENGTH_SHORT).show();
                         listener.onFetchDate(response.body(), response.message());
 
                     }

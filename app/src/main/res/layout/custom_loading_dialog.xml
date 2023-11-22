@@ -1,25 +1,57 @@
-<!-- custom_loading_dialog.xml -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/black"
+    android:orientation="vertical"
     android:padding="16dp">
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
+    <TextView
+        android:id="@+id/dialog_title"
+        android:layout_width="match_parent"
+        android:fontFamily="@font/regular"
+        android:textColor="@color/white"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:indeterminate="true" />
+        android:text="Location Permission Required"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"/>
 
     <TextView
-        android:id="@+id/loadingMessage"
-        android:layout_width="wrap_content"
+        android:id="@+id/dialog_message"
+        android:layout_width="match_parent"
+        android:textColor="@color/white"
+        android:fontFamily="@font/regular"
         android:layout_height="wrap_content"
-        android:layout_below="@id/progressBar"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:text="Loading..."
-        android:textColor="@android:color/black" />
+        android:text="You have not granted us location permission. By default, we will show New Delhi location. Is that alright?"
+        android:layout_marginTop="16dp"/>
 
-</RelativeLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
+
+        <Button
+            android:id="@+id/btnYes"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Yes"
+            android:fontFamily="@font/regular"
+            android:background="?android:attr/selectableItemBackground"
+            android:textColor="#ffffff"/>
+
+        <Button
+            android:id="@+id/btnNo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/regular"
+            android:text="No, Give Location Access"
+            android:background="?android:attr/selectableItemBackground"
+            android:textColor="#ffffff"/>
+
+    </LinearLayout>
+</LinearLayout>

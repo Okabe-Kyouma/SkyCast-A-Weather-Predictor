@@ -10,6 +10,8 @@ public interface OnFetchCurrentWeatherListener {
 
     void onError(String message);
 
+    void onCityNotFound(String message);
+
 
 
 }

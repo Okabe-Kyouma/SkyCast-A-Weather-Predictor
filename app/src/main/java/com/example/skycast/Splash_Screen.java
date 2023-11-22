@@ -15,6 +15,8 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,36 +32,27 @@ public class Splash_Screen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
 
-//        try {
-//            Thread.sleep(2000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
 
-        // Inside your Splash_Screen activity or fragment
         TextView appNameTextView = findViewById(R.id.appNameTextView);
 
-// Create an ObjectAnimator for alpha property
-        ObjectAnimator fadeInAnimator = ObjectAnimator.ofFloat(appNameTextView, "alpha", 0f, 1f);
-        fadeInAnimator.setDuration(1000); // Set the duration in milliseconds
 
-// Start the animation
+        ObjectAnimator fadeInAnimator = ObjectAnimator.ofFloat(appNameTextView, "alpha", 0f, 1f);
+        fadeInAnimator.setDuration(1000);
+
         fadeInAnimator.start();
 
-        // Inside your Splash_Screen activity or fragment
         ImageView sunImageView = findViewById(R.id.sunImageView);
 
-// Create an ObjectAnimator for scaling (X and Y) and alpha properties
         ObjectAnimator scaleXAnimator = ObjectAnimator.ofFloat(sunImageView, "scaleX", 0.5f, 1f);
         ObjectAnimator scaleYAnimator = ObjectAnimator.ofFloat(sunImageView, "scaleY", 0.5f, 1f);
         ObjectAnimator fadeInAnimator2 = ObjectAnimator.ofFloat(sunImageView, "alpha", 0f, 1f);
 
-// Set the duration for each animator
+
         scaleXAnimator.setDuration(1000);
         scaleYAnimator.setDuration(1000);
         fadeInAnimator2.setDuration(1000);
 
-// Start the animations together
+
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.playTogether(scaleXAnimator, scaleYAnimator, fadeInAnimator2);
         animatorSet.start();
@@ -79,6 +72,7 @@ public class Splash_Screen extends AppCompatActivity {
 
                             Intent intent = new Intent(Splash_Screen.this, MainActivity.class);
                             startActivity(intent);
+                            finish();
 
                         }
                     },2000);
@@ -90,6 +84,7 @@ public class Splash_Screen extends AppCompatActivity {
                      askPermission();
 
                 }
+
 
 
     }
@@ -110,25 +105,37 @@ public class Splash_Screen extends AppCompatActivity {
             }
             else{
 
-                Log.d("huehue","Showing alert Dialog");
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(Splash_Screen.this);
-                builder.setTitle("You have not given us location permission!! So We will By Default show New-Delhi Location is that alright?");
+                View view = getLayoutInflater().inflate(R.layout.custom_loading_dialog, null);
+                builder.setView(view);
 
-                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                TextView titleTextView = view.findViewById(R.id.dialog_title);
+                TextView messageTextView = view.findViewById(R.id.dialog_message);
+
+                titleTextView.setText("Location Permission Required");
+                messageTextView.setText("You have not granted us location permission. By default, we will show New Delhi location. Is that alright?");
+
+                Button btnYes = view.findViewById(R.id.btnYes);
+                Button btnNo = view.findViewById(R.id.btnNo);
+
+                btnYes.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                    public void onClick(View v) {
                         Intent intent = new Intent(Splash_Screen.this, MainActivity.class);
                         startActivity(intent);
                     }
                 });
-                builder.setNegativeButton("No Give Location Access", new DialogInterface.OnClickListener() {
+
+                btnNo.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                    public void onClick(View v) {
                         askPermission();
                     }
                 });
-                builder.show();
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
+
 
             }
         }

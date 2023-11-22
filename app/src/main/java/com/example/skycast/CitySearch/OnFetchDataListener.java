@@ -8,6 +8,8 @@ public interface OnFetchDataListener {
 
     void OnFetchData(List<ApiResult> results, String message);
 
+    void cityNotFound(String message);
+
     void onError(String message);
 
 }

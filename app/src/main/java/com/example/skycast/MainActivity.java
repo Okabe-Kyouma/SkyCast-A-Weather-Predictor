@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.SearchView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -14,10 +15,12 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
@@ -29,6 +32,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -83,9 +87,14 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     String currentTimeZone = " Asia/Kolkata";
     FusedLocationProviderClient fusedLocationProviderClient;
     List<CityList> selectedCity = new ArrayList<>();
+    ConstraintLayout progressBar;
+    AlertDialog.Builder builder,builder1;
+    AlertDialog dialog,dialog1;
     static String selectedCityName = "";
     static Drawable currentBackgroundDrawable;
     static String CurrentHourOfCurrentCity = "";
+    static double latitude;
+    static double longitude;
 
 
     @SuppressLint("MissingInflatedId")
@@ -107,6 +116,22 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         condition = findViewById(R.id.condition);
 
 
+        builder = new AlertDialog.Builder(MainActivity.this);
+        View view = getLayoutInflater().inflate(R.layout.cutom_progress_bar, null);
+        dialog = builder.create();
+        builder.setView(view);
+        builder.setCancelable(false);
+        dialog.show();
+
+        builder1 = new AlertDialog.Builder(MainActivity.this);
+        View view1 = getLayoutInflater().inflate(R.layout.custom_progress_bar,null);
+        builder1.setView(view1);
+        dialog1 = builder1.create();
+        dialog1.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        builder.setCancelable(false);
+        dialog1.show();
+
+
 
         fusedLocationProviderClient  = LocationServices.getFusedLocationProviderClient(this);
         RequestManager requestManager = new RequestManager(this);
@@ -119,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
                 Intent intent = new Intent(MainActivity.this,MoreDetails.class);
                 startActivity(intent);
+                finish();
 
             }
         });
@@ -221,7 +247,6 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
          if(recyclerView.getVisibility()==View.INVISIBLE || recyclerView.getVisibility()==View.GONE) {
 
-             Log.d("huehue","working or not? ");
              getCurrentWeatherDetails();
 
          }
@@ -249,6 +274,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
                             Log.d("huehue","getting latitude: " + addressList.get(0).getLatitude());
                             Log.d("huehue","getting latitude: " + addressList.get(0).getLongitude());
+
+                            latitude = addressList.get(0).getLatitude();
+                            longitude = addressList.get(0).getLongitude();
 
                             setSelectedCityFromRecycleView(city.getText().toString());
                             city.setShadowLayer(5,0,0, Color.WHITE);
@@ -279,7 +307,32 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
                 });
             } else {
 
+                Log.d("huehue","location is not provided reverting to New-delhi as default location");
+
                 city.setText("New-Delhi");
+
+                currentTimeZone = "Asia/Kolkata";
+
+                city.setAlpha(0.0f);
+
+                city.setShadowLayer(5,0,0, Color.WHITE);
+
+                city.animate()
+                        .alpha(1.0f)
+                        .setDuration(1000)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationStart(Animator animation) {
+                                city.setVisibility(View.VISIBLE);
+
+                            }
+                        })
+                        .start();
+
+
+
+                Log.d("huehue","cityName: " + city.getText().toString());
+
                 setSelectedCityFromRecycleView(city.getText().toString());
                 getCurrentWeatherDetails();
 //            askPermission();
@@ -317,7 +370,10 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         public void OnFetchData(List<ApiResult> results, String message) {
 
             if(results.isEmpty()){
-                Toast.makeText(MainActivity.this, "Error-empty", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Server-Error Please Try after some time", Toast.LENGTH_SHORT).show();
+
+                listener.cityNotFound("Recallingapi");
+
         }
             else{
 
@@ -345,9 +401,19 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     }
 
         @Override
+        public void cityNotFound(String message) {
+
+            Log.d("huehue","city Not found calling this method");
+
+            requestManagerWeathercurrent.fetchCurrentWeatherDetails(currentWeatherListener,latitude + "," + longitude);
+
+
+        }
+
+        @Override
         public void onError(String message) {
 
-            Toast.makeText(MainActivity.this, "Error-onError", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Server-Error Please Try after some time", Toast.LENGTH_SHORT).show();
         }
 
         };
@@ -488,10 +554,22 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
             Picasso.get().load("http:" + image_weather).into(img_weather);
 
+            dialog.dismiss();
+            dialog1.dismiss();
+
+
         }
 
         @Override
         public void onError(String message) {
+
+        }
+
+        @Override
+        public void onCityNotFound(String message) {
+
+            requestManagerWeathercurrent.fetchCurrentWeatherDetails(currentWeatherListener,latitude + "," + longitude);
+
 
         }
     };
@@ -528,12 +606,43 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         currentDate.setText(currentDateString + " " + currentTimeString);
     }
 
+    @Override
+    public void onBackPressed() {
 
 
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this);
+        View view = getLayoutInflater().inflate(R.layout.custom_loading_dialog, null);
+        builder.setView(view);
+        builder.setCancelable(false);
+
+        TextView titleTextView = view.findViewById(R.id.dialog_title);
+        TextView messageTextView = view.findViewById(R.id.dialog_message);
+
+        titleTextView.setText("Exit Confirmation");
+        messageTextView.setText("Do you really want to exit?");
+
+        Button btnYes = view.findViewById(R.id.btnYes);
+        Button btnNo = view.findViewById(R.id.btnNo);
+
+        btnNo.setText("No");
+
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.show();
+
+        btnYes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
+       btnNo.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View v) {
+                dialog.dismiss();
+           }
+       });
 
 
-
-
-
-
+    }
 }
