@@ -189,11 +189,16 @@ public class MoreDetails extends AppCompatActivity {
                 }
 
 
+                int lengthOfHourList = apiResultForecast.getForecast().getForecastday().size();
+                int lengthOfForecastList = apiResultForecast.getForecast().getForecastday().get(0).getHour().size();
+
+                Log.d("huehue1","Size of Hour list in MoreDetails: " + lengthOfHourList + " length of forecast list in more details: " + lengthOfForecastList);
+
                 //Daily Forecast:
 
-                for(int a = 1;a<10;a++){
+                for(int a = 1;a<lengthOfHourList;a++){
 
-                    for(int b = 0;b<=23;b++){
+                    for(int b = 0;b<lengthOfForecastList;b++){
 
                         try {
 

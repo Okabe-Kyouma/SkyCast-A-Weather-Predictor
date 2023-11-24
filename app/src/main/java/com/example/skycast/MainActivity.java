@@ -15,7 +15,10 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -28,6 +31,8 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -61,6 +66,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -70,7 +76,7 @@ import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements OnItemClickListener,ServiceCallback {
 
 
     private static final long UPDATE_INTERVAL = 1000;
@@ -95,6 +101,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     static String CurrentHourOfCurrentCity = "";
     static double latitude;
     static double longitude;
+    static boolean itWorkedOnFirstTime = false;
+    static String homeCity = "";
+    static  Context context;
 
 
     @SuppressLint("MissingInflatedId")
@@ -104,6 +113,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
+
+        context = MainActivity.this;
+
 
         recyclerView = findViewById(R.id.recycle);
         getMoreDetails = findViewById(R.id.get_more_details);
@@ -251,7 +263,142 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
          }
 
+         new Handler().postDelayed(new Runnable() {
+             @Override
+             public void run() {
 
+
+                 fetchWeatherDataAndStartService(new ServiceCallback() {
+                     @Override
+                     public void onServiceResult(String result) {
+
+                         Intent serviceIntent = new Intent(MainActivity.this, ExampleService.class);
+                         Log.d("huehue","This worked");
+                         serviceIntent.putExtra("inputExtr", "");
+                         startService(serviceIntent);
+                     }
+                 });
+
+                 AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                 Intent intent = new Intent(MainActivity.this, ExampleService.class);
+                 PendingIntent pendingIntent = PendingIntent.getService(MainActivity.this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+                   long intervalMillis = 60 * 60 * 1000;
+              //   long intervalMillis = 10 * 1000;
+                 alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(), intervalMillis, pendingIntent);
+
+
+             }
+         },3000);
+
+
+
+    }
+
+    private  void fetchWeatherDataAndStartService(ServiceCallback callback) {
+        Intent serviceIntent = new Intent(this, ExampleService.class);
+
+
+        String userLocation = MainActivity.latitude + "," + MainActivity.longitude;
+
+
+        String cityName = selectedCityName;
+
+
+        RequestManagerWeathercurrent weatherManager = new RequestManagerWeathercurrent(this);
+        weatherManager.fetchCurrentWeatherDetails(new OnFetchCurrentWeatherListener() {
+            @Override
+            public void onFetchData(ApiResultCurrent data, String message) {
+                Log.d("huehue", "weather service data is fetched successfully");
+
+
+                String suggestedPlaces = suggestPlaces(userLocation, data);
+
+                if (data != null) {
+                    callback.onServiceResult("" + data.getCurrent().getTemp_c() + "places to visit: " + suggestedPlaces);
+                } else {
+                    Log.d("huehue", "WEATHER DATA IS NULL");
+                }
+
+            }
+
+            @Override
+            public void onCityNotFound(String location) {
+                Log.d("WeatherUpdateService", "City not found: " + location);
+
+                selectedCityName = latitude + "," + longitude;
+
+                requestManagerWeathercurrent.fetchCurrentWeatherDetails(currentWeatherListener,latitude + "," + longitude);
+
+
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.d("WeatherUpdateService", "Error fetching weather data: " + errorMessage);
+                Toast.makeText(MainActivity.this, "Please Check Your Internet Connection!", Toast.LENGTH_SHORT).show();
+            }
+        }, cityName);
+    }
+
+
+
+    public void startService(){
+        Intent serviceIntent = new Intent(this,ExampleService.class);
+
+
+            String userLocation = MainActivity.latitude + "," + MainActivity.longitude;
+
+
+        String cityName = "Agra,Uttar Pradesh,India";
+
+
+        RequestManagerWeathercurrent weatherManager = new RequestManagerWeathercurrent(this);
+        weatherManager.fetchCurrentWeatherDetails(new OnFetchCurrentWeatherListener() {
+            @Override
+            public void onFetchData(ApiResultCurrent data, String message) {
+
+                Log.d("huehue","weather service data is fetched successfully");
+
+                String suggestedPlaces = suggestPlaces(userLocation, data);
+
+//                serviceIntent.putExtra("inputExtra", "" +  data.getCurrent().getTemp_c() + "places to visit: " + suggestedPlaces);
+                serviceIntent.putExtra("inputExtra", data.getCurrent().getTemp_c() + " places to visit: " + suggestedPlaces);
+                startService(serviceIntent);
+
+//                if (data != null) {
+//                    serviceIntent.putExtra("inputExtra", "" + data.getCurrent().getTemp_c() + "places to visit: " + suggestedPlaces);
+//                    startService(serviceIntent);
+//                } else {
+//                    Log.d("WeatherUpdateService", "Weather data is null");
+//                }
+
+
+            }
+
+            @Override
+            public void onCityNotFound(String location) {
+                Log.d("WeatherUpdateService", "City not found: " + location);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.d("WeatherUpdateService", "Error fetching weather data: " + errorMessage);
+                Toast.makeText(MainActivity.this, "Please Check Your Internet Connection!", Toast.LENGTH_SHORT).show();
+            }
+        }, cityName);
+    }
+
+    private String suggestPlaces(String userLocation, ApiResultCurrent weatherData) {
+
+        //No api for this method yet
+
+        return "Taj Mahal";
+    }
+
+    public void stopService(View v){
+        Intent serviceIntent = new Intent(this,ExampleService.class);
+        stopService(serviceIntent);
     }
 
     private void getLastLocation(){
@@ -271,6 +418,8 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
                         try {
                             addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
                             city.setText(addressList.get(0).getLocality());
+
+                            homeCity = addressList.get(0).getLocality();
 
                             Log.d("huehue","getting latitude: " + addressList.get(0).getLatitude());
                             Log.d("huehue","getting latitude: " + addressList.get(0).getLongitude());
@@ -370,7 +519,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         public void OnFetchData(List<ApiResult> results, String message) {
 
             if(results.isEmpty()){
-                Toast.makeText(MainActivity.this, "Server-Error Please Try after some time", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(MainActivity.this, "Server-Error Please Try after some time", Toast.LENGTH_SHORT).show();
 
                 listener.cityNotFound("Recallingapi");
 
@@ -413,7 +562,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         @Override
         public void onError(String message) {
 
-            Toast.makeText(MainActivity.this, "Server-Error Please Try after some time", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Please Check Your Internet Connection!", Toast.LENGTH_SHORT).show();
         }
 
         };
@@ -472,10 +621,13 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     }
 
 
-    private final OnFetchCurrentWeatherListener currentWeatherListener = new OnFetchCurrentWeatherListener() {
+    private final  OnFetchCurrentWeatherListener currentWeatherListener = new OnFetchCurrentWeatherListener() {
         @SuppressLint("SetTextI18n")
         @Override
         public void onFetchData(ApiResultCurrent resultCurrentList, String message) {
+
+            if(city.getText().toString().equals(homeCity))
+                itWorkedOnFirstTime = true;
 
             temp.setText(resultCurrentList.getCurrent().getTemp_c() + "\u00B0");
 
@@ -509,7 +661,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
                 weatherView.setWeatherData(PrecipType.CLEAR);
 
             }
-            else if(Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Heavy snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Blowing snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy heavy snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Moderate or heavy snow with thunder") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Light snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy moderate snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy heavy snow")){
+            else if(Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Heavy snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Blowing snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy heavy snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Moderate or heavy snow with thunder") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Light snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy moderate snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy heavy snow") || Objects.equals(resultCurrentList.getCurrent().getCondition().getText(), "Patchy light snow")){
 
                 weatherView.setBackground(AppCompatResources.getDrawable(MainActivity.this,R.drawable.gradient_list_mistandfog));
                 weatherView.setWeatherData(PrecipType.SNOW);
@@ -554,8 +706,15 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
             Picasso.get().load("http:" + image_weather).into(img_weather);
 
-            dialog.dismiss();
-            dialog1.dismiss();
+            try {
+
+                dialog.dismiss();
+                dialog1.dismiss();
+
+            }
+            catch (Exception e){
+                Log.d("huehue",e.toString());
+            }
 
 
         }
@@ -563,10 +722,16 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         @Override
         public void onError(String message) {
 
+            Toast.makeText(MainActivity.this, "Please Check Your Internet Connection!", Toast.LENGTH_SHORT).show();
+
         }
 
         @Override
         public void onCityNotFound(String message) {
+
+            if(city.getText().toString().equals(homeCity))
+            itWorkedOnFirstTime  = false;
+            selectedCityName = latitude + "," + longitude;
 
             requestManagerWeathercurrent.fetchCurrentWeatherDetails(currentWeatherListener,latitude + "," + longitude);
 
@@ -645,4 +810,16 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
 
     }
+
+    @Override
+    public void onServiceResult(String result) {
+        Intent serviceIntent = new Intent(MainActivity.this, ExampleService.class);
+        Log.d("huehue","This worked");
+        serviceIntent.putExtra("inputExtr", "");
+        startService(serviceIntent);
+    }
+}
+
+interface ServiceCallback {
+    void onServiceResult(String result);
 }

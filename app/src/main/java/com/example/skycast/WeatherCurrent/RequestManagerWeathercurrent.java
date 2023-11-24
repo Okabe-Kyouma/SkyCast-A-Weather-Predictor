@@ -47,7 +47,7 @@ public class RequestManagerWeathercurrent {
                     Log.d("huehue response code of currentWeather " , String.valueOf(response.code()) + "call: " + call.request().toString());
 
                     if(!response.isSuccessful()){
-                        Toast.makeText(context, "Server-Error Please Try after some time", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(context, "Server-Error Please Try after some time", Toast.LENGTH_SHORT).show();
 
                            listener.onCityNotFound("log and lang");
 
